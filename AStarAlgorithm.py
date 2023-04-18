@@ -4,7 +4,7 @@ from queue import PriorityQueue
 
 
 WIN_WIDTH = 800
-WIN = pygame.display.set_mode((WIN_WIDTH, WIN_WIDTH))
+WIN = pygame.display.set_mode((WIN_WIDTH+200, WIN_WIDTH))
 pygame.display.set_caption("A* Algorithm")
 
 #Tile Colors
@@ -17,6 +17,10 @@ GRAY = (128, 128, 128)
 GREEN = (0, 255, 0)
 LAPIS = (48, 103, 158)
 DBLUE = (38, 132, 255)
+
+aStarDiagonalButtonImg = pygame.image.load('res/aStarDiag.png').convert_alpha()
+aStarNonDiagonalButtonImg = pygame.image.load('res/aStarNonDiag.png').convert_alpha()
+
 
 class Tile:
     def __init__(self, row, col, width, totalRows):
@@ -121,6 +125,15 @@ class Tile:
                     and not grid[self.row+1][self.col-1].isWall()):   #[+1][-1] isn't a wall
                 self.neighbors.append(grid[self.row+1][self.col-1]) #Add target to neighbors
 
+class Button:
+    def __init__(self, x,y, image):
+        self.image = image
+        self.rect = self.image.get_rect()
+        self.rect.topleft = (x,y)
+    def draw(self, win):
+        win.blit(self.image, (self.rect.x, self.rect.y))
+
+
 
 def newGrid(rows, width):
     grid = []
@@ -133,13 +146,15 @@ def newGrid(rows, width):
     return grid
 
 
-def drawWindow(win, grid, rows, width):
+def drawWindow(win, grid, rows, width, buttons):
     win.fill(LAPIS)
 
     for row in grid:
         for tile in row:
             tile.draw(win)
     drawGridLines(win, rows, width)
+    for button in buttons:
+        button.draw(win)
     pygame.display.update()
 
 
@@ -235,8 +250,18 @@ def main(win, width):
     end = None
     isRunning = True
 
+    aStarDiagonalButton = Button(850, 100, aStarDiagonalButtonImg)
+    aStarNonDiagonalButton = Button(850, 200, aStarNonDiagonalButtonImg)
+    
+    UIButtons = [aStarDiagonalButton,
+                aStarNonDiagonalButton]
+
+
     while isRunning:
-        drawWindow(win, grid, rows, width)
+
+        drawWindow(win, grid, rows, width, UIButtons)
+
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 isRunning = False
@@ -279,7 +304,7 @@ def main(win, width):
                         for tile in row:
                             tile.updateNeighbors(grid, allowDiag)
 
-                    algorithm(lambda: drawWindow(win, grid, rows, width), grid, start, end)
+                    algorithm(lambda: drawWindow(win, grid, rows, width, UIButtons), grid, start, end)
 
     pygame.quit()
 main(WIN, WIN_WIDTH)
