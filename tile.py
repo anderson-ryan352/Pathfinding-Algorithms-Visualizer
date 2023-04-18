@@ -1,6 +1,5 @@
 import pygame
 
-
 #Tile Colors
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
@@ -11,7 +10,6 @@ GRAY = (128, 128, 128)
 GREEN = (0, 255, 0)
 LAPIS = (48, 103, 158)
 DBLUE = (38, 132, 255)
-
 
 class Tile:
     def __init__(self, row, col, width, totalRows):

@@ -9,6 +9,11 @@ WIN_WIDTH = 800
 WIN = pygame.display.set_mode((WIN_WIDTH+200, WIN_WIDTH))
 pygame.display.set_caption("A* Algorithm")
 
+
+aStarDiagonalButtonImg = pygame.image.load('res/aStarDiag.png').convert_alpha()
+aStarNonDiagonalButtonImg = pygame.image.load('res/aStarNonDiag.png').convert_alpha()
+resetButtonImg = pygame.image.load('res/reset.png').convert_alpha()
+
 #Tile Colors
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
@@ -19,11 +24,6 @@ GRAY = (128, 128, 128)
 GREEN = (0, 255, 0)
 LAPIS = (48, 103, 158)
 DBLUE = (38, 132, 255)
-
-aStarDiagonalButtonImg = pygame.image.load('res/aStarDiag.png').convert_alpha()
-aStarNonDiagonalButtonImg = pygame.image.load('res/aStarNonDiag.png').convert_alpha()
-
-
 
 
 
@@ -144,9 +144,11 @@ def main(win, width):
 
     aStarDiagonalButton = button.Button(850, 100, aStarDiagonalButtonImg)
     aStarNonDiagonalButton = button.Button(850, 200, aStarNonDiagonalButtonImg)
+    resetButton = button.Button(850, 500, resetButtonImg)
 
     UIButtons = [aStarDiagonalButton,
-                aStarNonDiagonalButton]
+                aStarNonDiagonalButton,
+                resetButton]
 
 
     while isRunning:
@@ -183,6 +185,10 @@ def main(win, width):
                         for square in row:
                             square.updateNeighbors(grid, False)
                     algorithm(lambda: drawWindow(win, grid, rows, width, UIButtons), grid, start, end)
+                elif(resetButton.isActivated()):
+                    grid = newGrid(rows, width)
+                    start = None
+                    end = None
                 
 
             #Deleting tiles
