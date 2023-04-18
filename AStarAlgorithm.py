@@ -1,5 +1,6 @@
 import math
 import pygame
+import button
 from queue import PriorityQueue
 
 
@@ -125,26 +126,6 @@ class Tile:
                     and not grid[self.row+1][self.col-1].isWall()):   #[+1][-1] isn't a wall
                 self.neighbors.append(grid[self.row+1][self.col-1]) #Add target to neighbors
 
-class Button:
-    def __init__(self, x,y, image):
-        self.image = image
-        self.rect = self.image.get_rect()
-        self.rect.topleft = (x,y)
-        self.clicked = False
-    def draw(self, win):
-        win.blit(self.image, (self.rect.x, self.rect.y))
-    def isActivated(self):
-        pos = pygame.mouse.get_pos()
-        isActive = False
-
-        if self.rect.collidepoint(pos):
-            if pygame.mouse.get_pressed()[0] == 1 and self.clicked == False:
-                self.clicked = True
-                isActive = True
-        if pygame.mouse.get_pressed()[0]==0:
-            self.clicked = False
-        return isActive
-
 
 
 def newGrid(rows, width):
@@ -262,8 +243,8 @@ def main(win, width):
     end = None
     isRunning = True
 
-    aStarDiagonalButton = Button(850, 100, aStarDiagonalButtonImg)
-    aStarNonDiagonalButton = Button(850, 200, aStarNonDiagonalButtonImg)
+    aStarDiagonalButton = button.Button(850, 100, aStarDiagonalButtonImg)
+    aStarNonDiagonalButton = button.Button(850, 200, aStarNonDiagonalButtonImg)
 
     UIButtons = [aStarDiagonalButton,
                 aStarNonDiagonalButton]
