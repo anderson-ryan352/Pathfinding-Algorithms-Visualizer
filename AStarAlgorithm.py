@@ -1,6 +1,7 @@
 import math
 import pygame
 import button
+import tile
 from queue import PriorityQueue
 
 
@@ -23,108 +24,6 @@ aStarDiagonalButtonImg = pygame.image.load('res/aStarDiag.png').convert_alpha()
 aStarNonDiagonalButtonImg = pygame.image.load('res/aStarNonDiag.png').convert_alpha()
 
 
-class Tile:
-    def __init__(self, row, col, width, totalRows):
-        self.width = width
-        self.row = row
-        self.col = col
-        self.x = row * width
-        self.y = col * width
-        self.color = LAPIS
-        self.totalRows = totalRows
-        self.neighbors = []
-
-    def draw(self, win):
-        pygame.draw.rect(win, self.color, (self.x, self.y, self.width, self.width))
-
-    #Getters and Setters
-    def setStart(self):
-        self.color = BLUE
-
-    def isStart(self):
-        return self.color == BLUE
-    
-    def setEnd(self):
-        self.color = PURPLE
-
-    def isEnd(self):
-        return self.color == PURPLE
-
-    def setWall(self):
-        self.color = BLACK
-
-    def isWall(self):
-        return self.color == BLACK
-
-    def setOpen(self):
-        self.color = ORANGE
-
-    def isOpen(self):
-        return self.color == ORANGE
-
-    def setClosed(self):
-        self.color=GRAY
-
-    def isClosed(self):
-        return self.color == GRAY
-
-    def getPos(self):
-        return self.row,self.col
-
-    def setPath(self):
-        self.color = GREEN
-
-    def reset(self):
-        self.color = LAPIS
-
-    #Checking neighbors and appending if neighbor tile is not a border tile/a wall
-    def updateNeighbors(self, grid, allowDiagonal):
-        self.neighbors = []
-
-        #Top check
-        if (self.row > 0    #Not a top border tile
-                and not grid[self.row-1][self.col].isWall()):   #[-1][0] isn't a wall
-            self.neighbors.append(grid[self.row-1][self.col])   #Add target to neighbors
-
-        #Bottom check
-        if (self.row<self.totalRows-1   #Not a bottom border tile
-                and not grid[self.row+1][self.col].isWall()):   #[+1][0] isn't a wall
-            self.neighbors.append(grid[self.row+1][self.col])  #Add target to neighbors
-
-        #Left check
-        if (self.col > 0    #Not a left border tile
-                and not grid[self.row][self.col-1].isWall()):   #[0][-1] isn't a wall
-            self.neighbors.append(grid[self.row][self.col-1])   #Add target to neighbors
-
-        #Right check
-        if (self.col < self.totalRows-1  #Not a right border tile
-                and not grid[self.row][self.col+1].isWall()):   #[0][+1] isn't a wall
-            self.neighbors.append(grid[self.row][self.col+1])   #Add target to neighbors
-
-        if allowDiagonal:
-            #Top left check
-            if (self.row > 0    #Not a top border tile
-                    and self.col > 0    #Not a left border tile
-                    and not grid[self.row-1][self.col-1].isWall()): #[-1][-1] isn't a wall
-                self.neighbors.append(grid[self.row-1][self.col-1]) #Add target to neighbors
-
-            #Top right check
-            if (self.col < self.totalRows-1 #Not a right border tile
-                    and self.row > 0    #Not a top border tile
-                    and not grid[self.row-1][self.col+1].isWall()): #[-1][+1] isn't a wall
-                self.neighbors.append(grid[self.row-1][self.col+1]) #Add target to neighbors
-
-            #Bottom right check
-            if (self.row < self.totalRows -1    #Not a bottom border tile
-                    and self.col < self.totalRows-1     #Not a right border tile
-                    and not grid[self.row+1][self.col+1].isWall()): #[+1][+1] isn't a wall
-                self.neighbors.append(grid[self.row+1][self.col+1]) #Add target to neighbors
-
-            #Bottom left check
-            if (self.col > 0    #Not a left border tile
-                    and self.row < self.totalRows-1     #Not a right border tile
-                    and not grid[self.row+1][self.col-1].isWall()):   #[+1][-1] isn't a wall
-                self.neighbors.append(grid[self.row+1][self.col-1]) #Add target to neighbors
 
 
 
@@ -134,8 +33,8 @@ def newGrid(rows, width):
     for x in range(rows):
         grid.append([])
         for y in range(rows):
-            tile = Tile(x, y, gap, rows)
-            grid[x].append(tile)
+            curTile = tile.Tile(x, y, gap, rows)
+            grid[x].append(curTile)
     return grid
 
 
@@ -143,8 +42,8 @@ def drawWindow(win, grid, rows, width, buttons):
     win.fill(LAPIS)
 
     for row in grid:
-        for tile in row:
-            tile.draw(win)
+        for square in row:
+            square.draw(win)
     drawGridLines(win, rows, width)
     for button in buttons:
         button.draw(win)
@@ -174,9 +73,9 @@ def algorithm(draw, grid, start, end):
     openSet.put((0, count, start))
     cameFrom = {}
 
-    gScore = {tile: float("inf") for row in grid for tile in row}
+    gScore = {square: float("inf") for row in grid for square in row}
     gScore[start] = 0
-    fScore = {tile: float("inf") for row in grid for tile in row}
+    fScore = {square: float("inf") for row in grid for square in row}
     fScore[start] = heuristic(start.getPos(), end.getPos())
 
     openSetHash = {start}
@@ -186,8 +85,8 @@ def algorithm(draw, grid, start, end):
             if event.type == pygame.QUIT:
                 pygame.quit()
             elif event.type == pygame.KEYDOWN:
-                #Pressing space or return during algorithm will end pathfinding
-                if (event.key == pygame.K_RETURN or event.key == pygame.K_SPACE):
+                #Pressing space during algorithm will end pathfinding
+                if (event.key == pygame.K_SPACE):
                     return None
             
         curTile = openSet.get()[2]
@@ -263,26 +162,26 @@ def main(win, width):
                 pos = pygame.mouse.get_pos()
                 row, col = getClickPos(pos, rows, width)
                 if validBoundsCheck(row, col, rows):
-                    tile = grid[row][col]
-                    if not start and tile != end:
-                        start = tile
+                    curTile = grid[row][col]
+                    if not start and curTile != end:
+                        start = curTile
                         start.setStart()
-                    elif not end and tile != start:
-                        end = tile
+                    elif not end and curTile != start:
+                        end = curTile
                         end.setEnd()
-                    elif tile != start and tile != end:
-                        tile.setWall()
+                    elif curTile != start and curTile != end:
+                        curTile.setWall()
                 elif(aStarDiagonalButton.isActivated()
                       and start and end):
                     for row in grid:
-                        for tile in row:
-                            tile.updateNeighbors(grid, True)
+                        for square in row:
+                            square.updateNeighbors(grid, True)
                     algorithm(lambda: drawWindow(win, grid, rows, width, UIButtons), grid, start, end)
                 elif(aStarNonDiagonalButton.isActivated()
                         and start and end):
                     for row in grid:
-                        for tile in row:
-                            tile.updateNeighbors(grid, False)
+                        for square in row:
+                            square.updateNeighbors(grid, False)
                     algorithm(lambda: drawWindow(win, grid, rows, width, UIButtons), grid, start, end)
                 
 
@@ -291,11 +190,11 @@ def main(win, width):
                 pos = pygame.mouse.get_pos()
                 row, col = getClickPos(pos, rows, width)
                 if validBoundsCheck(row, col, rows):
-                    tile = grid[row][col]
-                    tile.reset()
-                    if tile == start:
+                    curTile = grid[row][col]
+                    curTile.reset()
+                    if curTile == start:
                         start = None
-                    elif tile == end:
+                    elif curTile == end:
                         end = None
             if event.type == pygame.KEYDOWN:
                 #Reset entire grid with Backspace
