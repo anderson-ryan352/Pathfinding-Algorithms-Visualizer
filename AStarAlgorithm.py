@@ -130,8 +130,20 @@ class Button:
         self.image = image
         self.rect = self.image.get_rect()
         self.rect.topleft = (x,y)
+        self.clicked = False
     def draw(self, win):
         win.blit(self.image, (self.rect.x, self.rect.y))
+    def isActivated(self):
+        pos = pygame.mouse.get_pos()
+        isActive = False
+
+        if self.rect.collidepoint(pos):
+            if pygame.mouse.get_pressed()[0] == 1 and self.clicked == False:
+                self.clicked = True
+                isActive = True
+        if pygame.mouse.get_pressed()[0]==0:
+            self.clicked = False
+        return isActive
 
 
 
@@ -252,7 +264,7 @@ def main(win, width):
 
     aStarDiagonalButton = Button(850, 100, aStarDiagonalButtonImg)
     aStarNonDiagonalButton = Button(850, 200, aStarNonDiagonalButtonImg)
-    
+
     UIButtons = [aStarDiagonalButton,
                 aStarNonDiagonalButton]
 
@@ -279,6 +291,20 @@ def main(win, width):
                         end.setEnd()
                     elif tile != start and tile != end:
                         tile.setWall()
+                elif(aStarDiagonalButton.isActivated()
+                      and start and end):
+                    for row in grid:
+                        for tile in row:
+                            tile.updateNeighbors(grid, True)
+                    algorithm(lambda: drawWindow(win, grid, rows, width, UIButtons), grid, start, end)
+                elif(aStarNonDiagonalButton.isActivated()
+                        and start and end):
+                    for row in grid:
+                        for tile in row:
+                            tile.updateNeighbors(grid, False)
+                    algorithm(lambda: drawWindow(win, grid, rows, width, UIButtons), grid, start, end)
+                
+
             #Deleting tiles
             if pygame.mouse.get_pressed()[2]:#Right Click
                 pos = pygame.mouse.get_pos()
@@ -296,15 +322,6 @@ def main(win, width):
                     grid = newGrid(rows, width)
                     start = None
                     end = None
-                #Running A-Star Algorithm with Return(excluding diagonal neighbors) or Space(including diagonal neighbors)
-                elif ((event.key == pygame.K_RETURN or event.key == pygame.K_SPACE)
-                    and start and end):
-                    allowDiag = event.key==pygame.K_SPACE
-                    for row in grid:
-                        for tile in row:
-                            tile.updateNeighbors(grid, allowDiag)
-
-                    algorithm(lambda: drawWindow(win, grid, rows, width, UIButtons), grid, start, end)
 
     pygame.quit()
 main(WIN, WIN_WIDTH)
