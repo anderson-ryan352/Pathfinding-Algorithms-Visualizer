@@ -144,11 +144,11 @@ def drawWindow(win, grid, rows, width):
 
 
 def drawGridLines(win, rows, width):
-    gap = (width//rows)
+    gap = width//rows
     for i in range(rows):
-        pygame.draw.line(win, DBLUE, (0, i*gap), (width, i*gap))
+        pygame.draw.line(win, DBLUE, (0, i*gap), (width, i*gap), width=2)
     for j in range(rows):
-        pygame.draw.line(win, DBLUE, (j*gap, 0), (j*gap, width))
+        pygame.draw.line(win, DBLUE, (j*gap, 0), (j*gap, width), width=2)
 
 
 def getClickPos(pos, rows, width):
