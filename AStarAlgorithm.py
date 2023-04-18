@@ -15,6 +15,8 @@ PURPLE = (128, 0, 128)
 ORANGE = (255, 165, 0)
 GRAY = (128, 128, 128)
 GREEN = (0, 255, 0)
+LAPIS = (48, 103, 158)
+DBLUE = (38, 132, 255)
 
 class Tile:
     def __init__(self, row, col, width, totalRows):
@@ -23,7 +25,7 @@ class Tile:
         self.col = col
         self.x = row * width
         self.y = col * width
-        self.color = WHITE
+        self.color = LAPIS
         self.totalRows = totalRows
         self.neighbors = []
 
@@ -68,7 +70,7 @@ class Tile:
         self.color = GREEN
 
     def reset(self):
-        self.color = WHITE
+        self.color = LAPIS
 
     #Checking neighbors and appending if neighbor tile is not a border tile/a wall
     def updateNeighbors(self, grid, allowDiagonal):
@@ -132,7 +134,7 @@ def newGrid(rows, width):
 
 
 def drawWindow(win, grid, rows, width):
-    win.fill(WHITE)
+    win.fill(LAPIS)
 
     for row in grid:
         for tile in row:
@@ -142,11 +144,11 @@ def drawWindow(win, grid, rows, width):
 
 
 def drawGridLines(win, rows, width):
-    gap = width//rows
+    gap = (width//rows)
     for i in range(rows):
-        pygame.draw.line(win, BLACK, (0, i*gap), (width, i*gap))
+        pygame.draw.line(win, DBLUE, (0, i*gap), (width, i*gap))
     for j in range(rows):
-        pygame.draw.line(win, BLACK, (j*gap, 0), (j*gap, width))
+        pygame.draw.line(win, DBLUE, (j*gap, 0), (j*gap, width))
 
 
 def getClickPos(pos, rows, width):
@@ -219,6 +221,11 @@ def genPath(cameFrom, curTile, draw):
         curTile.setPath()
         draw()
 
+def validBoundsCheck(row, col, totalRows):
+    if (row >= totalRows or row < 0 
+        or col >= totalRows or col < 0):
+        return False
+    return True
 
 def main(win, width):
     rows = 40
@@ -237,25 +244,27 @@ def main(win, width):
             if pygame.mouse.get_pressed()[0]:#Left Click
                 pos = pygame.mouse.get_pos()
                 row, col = getClickPos(pos, rows, width)
-                tile = grid[row][col]
-                if not start and tile != end:
-                    start = tile
-                    start.setStart()
-                elif not end and tile != start:
-                    end = tile
-                    end.setEnd()
-                elif tile != start and tile != end:
-                    tile.setWall()
+                if validBoundsCheck(row, col, rows):
+                    tile = grid[row][col]
+                    if not start and tile != end:
+                        start = tile
+                        start.setStart()
+                    elif not end and tile != start:
+                        end = tile
+                        end.setEnd()
+                    elif tile != start and tile != end:
+                        tile.setWall()
             #Deleting tiles
             if pygame.mouse.get_pressed()[2]:#Right Click
                 pos = pygame.mouse.get_pos()
                 row, col = getClickPos(pos, rows, width)
-                tile = grid[row][col]
-                tile.reset()
-                if tile == start:
-                    start = None
-                elif tile == end:
-                    end = None
+                if validBoundsCheck(row, col, rows):
+                    tile = grid[row][col]
+                    tile.reset()
+                    if tile == start:
+                        start = None
+                    elif tile == end:
+                        end = None
             if event.type == pygame.KEYDOWN:
                 #Reset entire grid with Backspace
                 if event.key == pygame.K_BACKSPACE:
