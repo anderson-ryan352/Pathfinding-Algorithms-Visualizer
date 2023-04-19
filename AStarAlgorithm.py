@@ -6,13 +6,15 @@ from queue import PriorityQueue
 
 
 WIN_WIDTH = 800
-WIN = pygame.display.set_mode((WIN_WIDTH+200, WIN_WIDTH))
-pygame.display.set_caption("A* Algorithm")
+WIN = pygame.display.set_mode((WIN_WIDTH+200, WIN_WIDTH+50))
+pygame.display.set_caption("Algorithm Vizualization")
 
 
 aStarDiagonalButtonImg = pygame.image.load('res/aStarDiag.png').convert_alpha()
 aStarNonDiagonalButtonImg = pygame.image.load('res/aStarNonDiag.png').convert_alpha()
 resetButtonImg = pygame.image.load('res/reset.png').convert_alpha()
+clearSearchButtonImg = pygame.image.load('res/clearSearch.png').convert_alpha()
+spaceInfoImg = pygame.image.load('res/spaceInfo.png').convert_alpha()
 
 #Tile Colors
 BLACK = (0, 0, 0)
@@ -38,7 +40,7 @@ def newGrid(rows, width):
     return grid
 
 
-def drawWindow(win, grid, rows, width, buttons):
+def drawWindow(win, grid, rows, width, buttons, UIText):
     win.fill(LAPIS)
 
     for row in grid:
@@ -47,14 +49,17 @@ def drawWindow(win, grid, rows, width, buttons):
     drawGridLines(win, rows, width)
     for button in buttons:
         button.draw(win)
+    for text in UIText:
+        win.blit(text, (400, 800))
+    
     pygame.display.update()
 
 
 def drawGridLines(win, rows, width):
     gap = width//rows
-    for i in range(rows):
+    for i in range(rows+1):
         pygame.draw.line(win, DBLUE, (0, i*gap), (width, i*gap), width=2)
-    for j in range(rows):
+    for j in range(rows+1):
         pygame.draw.line(win, DBLUE, (j*gap, 0), (j*gap, width), width=2)
 
 
@@ -67,7 +72,7 @@ def getClickPos(pos, rows, width):
     return row, col
 
 
-def algorithm(draw, grid, start, end):
+def aStarAlgorithm(draw, grid, start, end):
     openSet = PriorityQueue()
     count = 0
     openSet.put((0, count, start))
@@ -134,6 +139,18 @@ def validBoundsCheck(row, col, totalRows):
         return False
     return True
 
+def clearSearch(grid):
+    for row in grid:
+        for square in row:
+            if (square.color == ORANGE
+                or square.color == GREEN
+                or square.color == GRAY):
+                square.color = LAPIS
+    return grid
+
+
+
+
 def main(win, width):
     rows = 40
     grid = newGrid(rows, width)
@@ -144,16 +161,21 @@ def main(win, width):
 
     aStarDiagonalButton = button.Button(850, 100, aStarDiagonalButtonImg)
     aStarNonDiagonalButton = button.Button(850, 200, aStarNonDiagonalButtonImg)
-    resetButton = button.Button(850, 500, resetButtonImg)
+    resetButton = button.Button(850, 700, resetButtonImg)
+    clearSearchButton = button.Button(850, 600, clearSearchButtonImg)
 
     UIButtons = [aStarDiagonalButton,
                 aStarNonDiagonalButton,
-                resetButton]
+                resetButton,
+                clearSearchButton]
+    
+
+    UIText = [spaceInfoImg]
 
 
     while isRunning:
 
-        drawWindow(win, grid, rows, width, UIButtons)
+        drawWindow(win, grid, rows, width, UIButtons, UIText)
 
 
         for event in pygame.event.get():
@@ -178,17 +200,19 @@ def main(win, width):
                     for row in grid:
                         for square in row:
                             square.updateNeighbors(grid, True)
-                    algorithm(lambda: drawWindow(win, grid, rows, width, UIButtons), grid, start, end)
+                    aStarAlgorithm(lambda: drawWindow(win, grid, rows, width, UIButtons, UIText), grid, start, end)
                 elif(aStarNonDiagonalButton.isActivated()
                         and start and end):
                     for row in grid:
                         for square in row:
                             square.updateNeighbors(grid, False)
-                    algorithm(lambda: drawWindow(win, grid, rows, width, UIButtons), grid, start, end)
+                    aStarAlgorithm(lambda: drawWindow(win, grid, rows, width, UIButtons, UIText), grid, start, end)
                 elif(resetButton.isActivated()):
                     grid = newGrid(rows, width)
                     start = None
                     end = None
+                elif(clearSearchButton.isActivated()):
+                    grid = clearSearch(grid)
                 
 
             #Deleting tiles
