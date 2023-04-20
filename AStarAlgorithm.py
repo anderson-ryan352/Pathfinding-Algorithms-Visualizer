@@ -12,7 +12,9 @@ pygame.display.set_caption("Algorithm Vizualization")
 
 aStarDiagonalButtonImg = pygame.image.load('res/aStarDiag.png').convert_alpha()
 aStarNonDiagonalButtonImg = pygame.image.load('res/aStarNonDiag.png').convert_alpha()
-bfsDiagonalButtonImg = pygame.image.load('res/bfsDiagonal.png').convert_alpha()
+bfsDiagonalButtonImg = pygame.image.load('res/bfsDiag.png').convert_alpha()
+bfsNonDiagonalButtonImg = pygame.image.load('res/bfsNonDiag.png').convert_alpha()
+
 resetButtonImg = pygame.image.load('res/reset.png').convert_alpha()
 clearSearchButtonImg = pygame.image.load('res/clearSearch.png').convert_alpha()
 spaceInfoImg = pygame.image.load('res/spaceInfo.png').convert_alpha()
@@ -198,12 +200,15 @@ def main(win, width):
     aStarDiagonalButton = button.Button(850, 100, aStarDiagonalButtonImg)
     aStarNonDiagonalButton = button.Button(850, 200, aStarNonDiagonalButtonImg)
     bfsDiagonalButton = button.Button(850, 300, bfsDiagonalButtonImg)
+    bfsNonDiagonalButton = button.Button(850, 400, bfsNonDiagonalButtonImg)
+
     resetButton = button.Button(850, 700, resetButtonImg)
     clearSearchButton = button.Button(850, 600, clearSearchButtonImg)
 
     UIButtons = [aStarDiagonalButton,
                 aStarNonDiagonalButton,
                 bfsDiagonalButton,
+                bfsNonDiagonalButton,
                 resetButton,
                 clearSearchButton]
     
@@ -250,6 +255,12 @@ def main(win, width):
                     for row in grid:
                         for square in row:
                             square.updateNeighbors(grid, True)
+                    bfs(lambda:drawWindow(win, grid, rows, width, UIButtons, UIText), grid, start, end)
+                elif(bfsNonDiagonalButton.isActivated()
+                        and start and end):
+                    for row in grid:
+                        for square in row:
+                            square.updateNeighbors(grid, False)
                     bfs(lambda:drawWindow(win, grid, rows, width, UIButtons, UIText), grid, start, end)
 
                 elif(resetButton.isActivated()):
