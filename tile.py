@@ -73,6 +73,10 @@ class Tile:
         if (self.row > 0    #Not a top border tile
                 and not grid[self.row-1][self.col].isWall()):   #[-1][0] isn't a wall
             self.neighbors.append(grid[self.row-1][self.col])   #Add target to neighbors
+        #Right check
+        if (self.col < self.totalRows-1  #Not a right border tile
+                and not grid[self.row][self.col+1].isWall()):   #[0][+1] isn't a wall
+            self.neighbors.append(grid[self.row][self.col+1])   #Add target to neighbors
 
         #Bottom check
         if (self.row<self.totalRows-1   #Not a bottom border tile
@@ -83,11 +87,6 @@ class Tile:
         if (self.col > 0    #Not a left border tile
                 and not grid[self.row][self.col-1].isWall()):   #[0][-1] isn't a wall
             self.neighbors.append(grid[self.row][self.col-1])   #Add target to neighbors
-
-        #Right check
-        if (self.col < self.totalRows-1  #Not a right border tile
-                and not grid[self.row][self.col+1].isWall()):   #[0][+1] isn't a wall
-            self.neighbors.append(grid[self.row][self.col+1])   #Add target to neighbors
 
         if allowDiagonal:
             #Top left check

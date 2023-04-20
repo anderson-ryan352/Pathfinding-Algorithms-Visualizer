@@ -12,8 +12,12 @@ pygame.display.set_caption("Algorithm Vizualization")
 
 aStarDiagonalButtonImg = pygame.image.load('res/aStarDiag.png').convert_alpha()
 aStarNonDiagonalButtonImg = pygame.image.load('res/aStarNonDiag.png').convert_alpha()
+
 bfsDiagonalButtonImg = pygame.image.load('res/bfsDiag.png').convert_alpha()
 bfsNonDiagonalButtonImg = pygame.image.load('res/bfsNonDiag.png').convert_alpha()
+
+dfsDiagonalButtonImg = pygame.image.load('res/dfsDiag.png').convert_alpha()
+dfsNonDiagonalButtonImg = pygame.image.load('res/dfsNonDiag.png').convert_alpha()
 
 resetButtonImg = pygame.image.load('res/reset.png').convert_alpha()
 clearSearchButtonImg = pygame.image.load('res/clearSearch.png').convert_alpha()
@@ -41,6 +45,11 @@ def newGrid(rows, width):
             curTile = tile.Tile(x, y, gap, rows)
             grid[x].append(curTile)
     return grid
+
+def refreshGrid(grid, allowDiagonal):
+    for row in grid:
+        for square in row:
+            square.updateNeighbors(grid, allowDiagonal)
 
 
 def drawWindow(win, grid, rows, width, buttons, UIText):
@@ -187,7 +196,39 @@ def bfs(draw, grid, start, end):
             curTile.setClosed()
     return False
 
+def dfs(draw, grid, start, end):
+    stack = [start]
+    visited = set()
+    cameFrom = {}
 
+    while stack:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+            elif event.type == pygame.KEYDOWN:
+                #Pressing space during algorithm will end pathfinding
+                if (event.key == pygame.K_SPACE):
+                    return None
+
+        curTile = stack.pop()
+
+        if curTile == end:
+            genPath(cameFrom, end, draw)
+            end.setEnd()
+            start.setStart()
+            return True
+
+        if curTile not in visited:
+            visited.add(curTile)
+        for neighbor in curTile.neighbors:
+            if neighbor not in visited:
+                cameFrom[neighbor] = curTile
+                neighbor.setOpen()
+                stack.append(neighbor)
+        draw()
+        if curTile != start:
+            curTile.setClosed()
+    return False
 
 def main(win, width):
     rows = 40
@@ -197,10 +238,14 @@ def main(win, width):
     end = None
     isRunning = True
 
-    aStarDiagonalButton = button.Button(850, 100, aStarDiagonalButtonImg)
-    aStarNonDiagonalButton = button.Button(850, 200, aStarNonDiagonalButtonImg)
-    bfsDiagonalButton = button.Button(850, 300, bfsDiagonalButtonImg)
-    bfsNonDiagonalButton = button.Button(850, 400, bfsNonDiagonalButtonImg)
+    aStarDiagonalButton = button.Button(850, 25, aStarDiagonalButtonImg)
+    aStarNonDiagonalButton = button.Button(850, 100, aStarNonDiagonalButtonImg)
+
+    bfsDiagonalButton = button.Button(850, 175, bfsDiagonalButtonImg)
+    bfsNonDiagonalButton = button.Button(850, 250, bfsNonDiagonalButtonImg)
+
+    dfsDiagonalButton = button.Button(850, 325, dfsDiagonalButtonImg)
+    dfsNonDiagonalButton = button.Button(850, 400, dfsNonDiagonalButtonImg)
 
     resetButton = button.Button(850, 700, resetButtonImg)
     clearSearchButton = button.Button(850, 600, clearSearchButtonImg)
@@ -209,6 +254,8 @@ def main(win, width):
                 aStarNonDiagonalButton,
                 bfsDiagonalButton,
                 bfsNonDiagonalButton,
+                dfsDiagonalButton,
+                dfsNonDiagonalButton,
                 resetButton,
                 clearSearchButton]
     
@@ -238,31 +285,44 @@ def main(win, width):
                         end.setEnd()
                     elif curTile != start and curTile != end:
                         curTile.setWall()
+                
+                #############################
+                # A* SEARCHES               #
                 elif(aStarDiagonalButton.isActivated()
                       and start and end):
-                    for row in grid:
-                        for square in row:
-                            square.updateNeighbors(grid, True)
+                    refreshGrid(grid, True)
                     aStarAlgorithm(lambda: drawWindow(win, grid, rows, width, UIButtons, UIText), grid, start, end)
+                
                 elif(aStarNonDiagonalButton.isActivated()
                         and start and end):
-                    for row in grid:
-                        for square in row:
-                            square.updateNeighbors(grid, False)
+                    refreshGrid(grid, False)
                     aStarAlgorithm(lambda: drawWindow(win, grid, rows, width, UIButtons, UIText), grid, start, end)
+                #############################
+                # BFS SEARCHES              #
                 elif(bfsDiagonalButton.isActivated()
                         and start and end):
-                    for row in grid:
-                        for square in row:
-                            square.updateNeighbors(grid, True)
+                    refreshGrid(grid, True)
                     bfs(lambda:drawWindow(win, grid, rows, width, UIButtons, UIText), grid, start, end)
+                
                 elif(bfsNonDiagonalButton.isActivated()
                         and start and end):
-                    for row in grid:
-                        for square in row:
-                            square.updateNeighbors(grid, False)
+                    refreshGrid(grid, False)
                     bfs(lambda:drawWindow(win, grid, rows, width, UIButtons, UIText), grid, start, end)
+                
+                #############################
+                # DFS SEARCHES              #
+                elif(dfsDiagonalButton.isActivated()
+                        and start and end):
+                    refreshGrid(grid, True)
+                    dfs(lambda:drawWindow(win, grid, rows, width, UIButtons, UIText), grid, start, end)
+                
+                elif(dfsNonDiagonalButton.isActivated()
+                        and start and end):
+                    refreshGrid(grid, False)
+                    dfs(lambda:drawWindow(win, grid, rows, width, UIButtons, UIText), grid, start, end)
 
+                #############################
+                # RESET/CLEAR               #
                 elif(resetButton.isActivated()):
                     grid = newGrid(rows, width)
                     start = None
