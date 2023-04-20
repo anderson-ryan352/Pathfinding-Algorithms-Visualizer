@@ -12,6 +12,7 @@ pygame.display.set_caption("Algorithm Vizualization")
 
 aStarDiagonalButtonImg = pygame.image.load('res/aStarDiag.png').convert_alpha()
 aStarNonDiagonalButtonImg = pygame.image.load('res/aStarNonDiag.png').convert_alpha()
+bfsDiagonalButtonImg = pygame.image.load('res/bfsDiagonal.png').convert_alpha()
 resetButtonImg = pygame.image.load('res/reset.png').convert_alpha()
 clearSearchButtonImg = pygame.image.load('res/clearSearch.png').convert_alpha()
 spaceInfoImg = pygame.image.load('res/spaceInfo.png').convert_alpha()
@@ -81,7 +82,7 @@ def aStarAlgorithm(draw, grid, start, end):
     gScore = {square: float("inf") for row in grid for square in row}
     gScore[start] = 0
     fScore = {square: float("inf") for row in grid for square in row}
-    fScore[start] = heuristic(start.getPos(), end.getPos())
+    fScore[start] = manhattanDist(start.getPos(), end.getPos())
 
     openSetHash = {start}
 
@@ -108,7 +109,7 @@ def aStarAlgorithm(draw, grid, start, end):
             if tempGScore < gScore[neighbor]:
                 cameFrom[neighbor] = curTile
                 gScore[neighbor] = tempGScore
-                fScore[neighbor] = tempGScore + heuristic(neighbor.getPos(), end.getPos())
+                fScore[neighbor] = tempGScore + manhattanDist(neighbor.getPos(), end.getPos())
                 if neighbor not in openSetHash:
                     count += 1
                     openSet.put((fScore[neighbor], count, neighbor))
@@ -121,7 +122,7 @@ def aStarAlgorithm(draw, grid, start, end):
 
 
 #Calculates absolute distance between two points using their coordinates
-def heuristic(point1, point2):
+def manhattanDist(point1, point2):
     x1, y1 = point1
     x2, y2 = point2
     return abs(x1-x2) + abs(y1-y2)
@@ -149,6 +150,41 @@ def clearSearch(grid):
     return grid
 
 
+def bfs(draw, grid, start, end):
+    queue = []
+    visited = []
+    cameFrom = {}
+
+    queue.append(start)
+    visited.append(start)
+
+    while queue:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+            elif event.type == pygame.KEYDOWN:
+                #Pressing space during algorithm will end pathfinding
+                if (event.key == pygame.K_SPACE):
+                    return None
+        curTile = queue.pop(0)
+
+        if curTile == end:
+            genPath(cameFrom, end, draw)
+            end.setEnd()
+            start.setStart()
+            return True
+        
+        for neighbor in curTile.neighbors:
+            if neighbor not in visited:
+                cameFrom[neighbor] = curTile
+                visited.append(neighbor)
+                neighbor.setOpen()
+                queue.append(neighbor)
+        draw()
+        if curTile != start:
+            curTile.setClosed()
+    return False
+
 
 
 def main(win, width):
@@ -161,11 +197,13 @@ def main(win, width):
 
     aStarDiagonalButton = button.Button(850, 100, aStarDiagonalButtonImg)
     aStarNonDiagonalButton = button.Button(850, 200, aStarNonDiagonalButtonImg)
+    bfsDiagonalButton = button.Button(850, 300, bfsDiagonalButtonImg)
     resetButton = button.Button(850, 700, resetButtonImg)
     clearSearchButton = button.Button(850, 600, clearSearchButtonImg)
 
     UIButtons = [aStarDiagonalButton,
                 aStarNonDiagonalButton,
+                bfsDiagonalButton,
                 resetButton,
                 clearSearchButton]
     
@@ -207,13 +245,19 @@ def main(win, width):
                         for square in row:
                             square.updateNeighbors(grid, False)
                     aStarAlgorithm(lambda: drawWindow(win, grid, rows, width, UIButtons, UIText), grid, start, end)
+                elif(bfsDiagonalButton.isActivated()
+                        and start and end):
+                    for row in grid:
+                        for square in row:
+                            square.updateNeighbors(grid, True)
+                    bfs(lambda:drawWindow(win, grid, rows, width, UIButtons, UIText), grid, start, end)
+
                 elif(resetButton.isActivated()):
                     grid = newGrid(rows, width)
                     start = None
                     end = None
                 elif(clearSearchButton.isActivated()):
                     grid = clearSearch(grid)
-                
 
             #Deleting tiles
             if pygame.mouse.get_pressed()[2]:#Right Click
